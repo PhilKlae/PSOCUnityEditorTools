@@ -1,0 +1,15 @@
+{
+  "name": "com.philippklaeser.psocai",
+  "version": "0.0.1", 
+  "displayName": "Editor Tools for PSOCAI",
+  "description": "Unity Editor Tools for PSOCAI, requires either a self hosted or a cloud hosted PSOCAI server. Use this package to create agents, tools and workflows to partially automate your game development.",
+  "unity": "6000.0",
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.unity.scripting.python": "7.0.1"
+  },
+  "author": {
+    "name": "Philipp Klaeser",
+    "email": "philipp.klaeser@t-online.de"
+  }
+}

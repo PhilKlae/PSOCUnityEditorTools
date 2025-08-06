@@ -1,0 +1,52 @@
+[
+    {
+        "step_name": "AbilityQueryRefiner",
+        "agent_input": "Create an ability called poison cloud, all enemies are hit and a poison damage over time effect is applied. no initial damage, only tick damage",
+        "agent_response": "Create an Ability called 'Poison Cloud'. This ability hits all enemies on the battlefield and applies a poison damage over time effect. The poison effect lasts for 3 turns and deals 3 damage per tick. The ability has a cooldown of 4 turns and costs 2 action points to use. It can be used from any position."
+    },
+    {
+        "step_name": "AbilityTemplateTaskDispatcher",
+        "agent_input": "Create an Ability called 'Poison Cloud'. This ability hits all enemies on the battlefield and applies a poison damage over time effect. The poison effect lasts for 3 turns and deals 3 damage per tick. The ability has a cooldown of 4 turns and costs 2 action points to use. It can be used from any position.",
+        "agent_response": "{\n    \"TargetingRequest\": \"hits all enemies on the battlefield\",\n    \"SlotTypeRequest\": \"area of effect ability, can be casted from any position. Applies a poison damage over time effect that lasts for 3 turns, dealing 3 damage per tick. Has a cooldown of 4 turns and costs 2 action points to use.\"\n}"
+    },
+    {
+        "step_name": "DisplayContentCreate",
+        "agent_input": "Create an Ability called 'Poison Cloud'. This ability hits all enemies on the battlefield and applies a poison damage over time effect. The poison effect lasts for 3 turns and deals 3 damage per tick. The ability has a cooldown of 4 turns and costs 2 action points to use. It can be used from any position.",
+        "agent_response": "{\n    \"DisplayName\" : \"Poison Cloud\",\n    \"Description\" : \"Release a toxic cloud that engulfs all enemies on the battlefield, applying a poison damage over time effect. The poison effect lasts for 3 turns, dealing 3 damage per turn.\",\n    \"Cooldown\" : 4,\n    \"ActionPointCost\" : 2\n}"
+    },
+    {
+        "step_name": "TargetingSelection",
+        "agent_input": "hits all enemies on the battlefield",
+        "agent_response": "{\n    \"TargetingGuid\": \"403267c56a4642f4dab0ad49a11a327f\"\n}"
+    },
+    {
+        "step_name": "SlotTypeSelection",
+        "agent_input": "area of effect ability, can be casted from any position. Applies a poison damage over time effect that lasts for 3 turns, dealing 3 damage per tick. Has a cooldown of 4 turns and costs 2 action points to use.",
+        "agent_response": "{\n    \"SlotTypeGuid\": \"5fa5d7e748952a749907ebf3cfeb283b\",\n    \"Reasoning\": \"The ability described fits the MeleePrimary slot type, as it involves direct engagement with enemies in close combat, which is typical for a primary melee attack.\"\n}"
+    },
+    {
+        "step_name": "AbilityActionDispatch",
+        "agent_input": "Create an Ability called 'Poison Cloud'. This ability hits all enemies on the battlefield and applies a poison damage over time effect. The poison effect lasts for 3 turns and deals 3 damage per tick. The ability has a cooldown of 4 turns and costs 2 action points to use. It can be used from any position.",
+        "agent_response": "{\n    \"AbilityActions\" : [\"Poison Cloud AOE DOT Action, ranged without any animation, applies a poison damage over time effect to all targets, affects all targets, deals 3 damage per turn for 3 turns\"]\n}"
+    },
+    {
+        "step_name": "AbilityActionCreate",
+        "agent_input": "Poison Cloud AOE DOT Action, ranged without any animation, applies a poison damage over time effect to all targets, affects all targets, deals 3 damage per turn for 3 turns",
+        "agent_response": "{\n    \"AbilityActionDescription\" : {\n        \"class\": \"AbilityAction\",\n        \"name\" : \"Poison Cloud AOE DOT Action\",\n        \"animationName\" : \"\",\n        \"isMelee\" : false,\n        \"isAOE\" : true,\n        \"effects\" : [\"Poison Cloud AOE DOT Effect\"],\n        \"Saving Instructions\" : \"Save as PoisonCloudAOEDOTAction.asset\"\n    },\n    \"AbilityEffectRequests\" : [\"Poison Cloud AOE DOT Effect: ranged attack that applies a poison damage over time effect to all targets, dealing 3 damage per turn for 3 turns\"]\n}"
+    },
+    {
+        "step_name": "AbilityEffectCreate",
+        "agent_input": "Poison Cloud AOE DOT Effect: ranged attack that applies a poison damage over time effect to all targets, dealing 3 damage per turn for 3 turns",
+        "agent_response": "{\n  \"AbilityEffectDescription\": {\n    \"class\": \"AbilityEffectApplyStatus\",\n    \"name\": \"Poison Cloud AOE DOT Effect\",\n    \"applyStatusTarget\": \"AbilityEffectApplyStatus.ApplyStatusTarget.Target\",\n    \"statusTemplate\": \"Poison Cloud DOT Status\",\n    \"Saving Instructions\": \"Save as PoisonCloudAOEDOTEffect.asset\"\n  },\n  \"StatusTemplateRequests\": [\"Poison Cloud DOT Status: a damage over time effect that deals 3 damage per turn for 3 turns\"]\n}"
+    },
+    {
+        "step_name": "StatusEffectCreate",
+        "agent_input": "Poison Cloud DOT Status: a damage over time effect that deals 3 damage per turn for 3 turns",
+        "agent_response": "{{\n  \"StatusTemplate\": {\n    \"class\": \"StatusEffectTemplate\",\n    \"name\": \"Poison Cloud DOT\",\n    \"duration\": 3,\n    \"tickRate\": 1,\n    \"allowMultiple\": false,\n    \"maxStacks\": 1,\n    \"startingStacks\": 1,\n    \"modifiers\": [],\n    \"onApply\": [],\n    \"onRemove\": [],\n    \"onTick\": [{\"DamageOverTimeEffect\": \"Deals 3 poison damage per turn\"}]\n  },\n  \"ModifierRequests\": {},\n  \"AbilityEffectRequests\": {\"DamageOverTimeEffect\": \"Deals 3 poison damage per turn\"}\n}}"
+    },
+    {
+        "step_name": "AbilityEffectCreate",
+        "agent_input": "DamageOverTimeEffect",
+        "agent_response": "{\n  \"AbilityEffectDescription\": {\n    \"class\": \"AbilityEffectDmg\",\n    \"name\": \"Poison Damage Over Time Effect\",\n    \"baseDamage\": 5,\n    \"powerScaling\": 1,\n    \"damageType(guid)\": \"37377205a563d4543884250b37ea246f\",\n    \"Saving Instructions\": \"Save as PoisonDamageOverTime.asset\"\n  }\n}"
+    }
+]

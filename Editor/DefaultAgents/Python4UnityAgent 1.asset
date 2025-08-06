@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d26f8a5b84d679d4b9317366f591c272, type: 3}
+  m_Name: Python4UnityAgent 1
+  m_EditorClassIdentifier: 
+  agentId: 6880cfdeced8ad53ff758bf0
+  agentName: Python4UnityAgent
+  description: This agent can be used to create
+  tools:
+  - {fileID: 11400000, guid: f979ac3c0cd7e404e92f5c4a2f20beb8, type: 2}
+  llmConfig:
+    modelName: gpt-4o
+    temperature: 0.129
+    maxTokens: 1000
+  maxIterations: 100
+  verbose: 1
+  status: updated
+  promptTextFile: {fileID: 4900000, guid: fa4e51a72abee364da99df43b0f80ce3, type: 3}
