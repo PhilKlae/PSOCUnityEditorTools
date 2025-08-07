@@ -33,17 +33,16 @@ public class ConnectionSettingsEditor : Editor
         serializedObject.ApplyModifiedProperties();
     }
 
-    private void DrawConnectionFields(ConnectionSettings settings)
+    private void DrawConnectionFields()
     {
-        settings.serverIP = EditorGUILayout.TextField("Server IP", settings.serverIP);
-        settings.serverPort = EditorGUILayout.IntField("Port", settings.serverPort);
-        settings.apiKey = EditorGUILayout.TextField("API Key", settings.apiKey);
-        settings.username = EditorGUILayout.TextField("Username", settings.username);
-        settings.password = EditorGUILayout.PasswordField("Password", settings.password);
-        
-        settings.projectId = EditorGUILayout.TextField("Project ID", settings.projectId);
-
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("serverIP"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("serverPort"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("apiKey"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("username"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("password"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("projectId"));
     }
+
 
     private void DrawStatusIndicator()
     {
