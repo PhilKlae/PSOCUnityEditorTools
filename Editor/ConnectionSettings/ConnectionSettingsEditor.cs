@@ -20,7 +20,7 @@ public class ConnectionSettingsEditor : Editor
 
         EditorGUI.BeginDisabledGroup(Application.isPlaying);
         {
-            DrawConnectionFields(settings);
+            DrawConnectionFields();
             EditorGUILayout.Space(10);
             DrawStatusIndicator();
             EditorGUILayout.Space(10);
