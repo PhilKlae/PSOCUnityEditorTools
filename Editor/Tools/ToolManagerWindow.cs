@@ -67,6 +67,7 @@ public class ToolManagerWindow : EditorWindow
         {
             if (GUILayout.Button("Sync All Tools", GUILayout.Height(30)))
             {
+                // call instance method that keeps UI state
                 SyncAllTools(tools);
             }
         }
@@ -87,6 +88,13 @@ public class ToolManagerWindow : EditorWindow
             .Select(guid => AssetDatabase.LoadAssetAtPath<ToolBase>(
                 AssetDatabase.GUIDToAssetPath(guid)))
             .ToList();
+    }
+
+    // Parameterless wrapper so external callers can trigger a full tool sync
+    public void SyncAllTools()
+    {
+        var tools = FindAllTools();
+        SyncAllTools(tools);
     }
 
     private async Task<List<string>> GetRemoteToolIds()
@@ -110,7 +118,8 @@ public class ToolManagerWindow : EditorWindow
         return response.Select(t => t.id).ToList();
     }
 
-    private async void SyncAllTools(List<ToolBase> tools)
+    // keep original behavior for UI; make it public so external callers can trigger tool sync
+    public async void SyncAllTools(List<ToolBase> tools)
     {
         isSyncing = true;
         statusMessage = "Starting sync...";
@@ -125,6 +134,11 @@ public class ToolManagerWindow : EditorWindow
             // Clear orphaned IDs
             foreach (var tool in tools)
             {
+                if (tool.excludeFromSync)
+                {
+                    Debug.Log($"Skipping excluded tool {tool.toolName}");
+                    continue;
+                }
                 if (!string.IsNullOrEmpty(tool.toolId) && !remoteIds.Contains(tool.toolId))
                 {
                     Debug.Log($"Clearing orphaned ID for {tool.toolName}");
@@ -138,6 +152,11 @@ public class ToolManagerWindow : EditorWindow
             {
                 try
                 {
+                    if (tool.excludeFromSync)
+                    {
+                        Debug.Log($"Skipping excluded tool {tool.toolName}");
+                        continue;
+                    }
                     if (string.IsNullOrEmpty(tool.toolId))
                     {
                         statusMessage = $"Creating {tool.toolName}...";

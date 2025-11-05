@@ -69,6 +69,7 @@ public class AgentManagerWindow : EditorWindow
         EditorGUI.BeginDisabledGroup(isSyncing);
         if (GUILayout.Button("Sync All Agents", GUILayout.Height(30)))
         {
+            // call the instance sync (keeps UI state in this window)
             SyncAllAgents();
         }
         EditorGUI.EndDisabledGroup();
@@ -112,7 +113,8 @@ private async Task<List<string>> GetRemoteAgentIds()
 }
 
 // Updated SyncAllAgents method
-private async void SyncAllAgents()
+// made public so external tools/windows can trigger agent syncs
+public async void SyncAllAgents()
 {
     isSyncing = true;
     statusMessage = "Starting agent sync...";
@@ -127,6 +129,11 @@ private async void SyncAllAgents()
         // Clear orphaned IDs
         foreach (var agent in localAgents)
         {
+            if (agent.excludeFromSync)
+            {
+                Debug.Log($"Skipping excluded agent {agent.agentName}");
+                continue;
+            }
             if (!string.IsNullOrEmpty(agent.agentId) && !remoteIds.Contains(agent.agentId))
             {
                 Debug.Log($"Clearing orphaned ID for {agent.agentName}");
@@ -138,6 +145,11 @@ private async void SyncAllAgents()
         // Process sync
         foreach (var agent in localAgents)
         {
+            if (agent.excludeFromSync)
+            {
+                Debug.Log($"Skipping excluded agent {agent.agentName}");
+                continue;
+            }
             if (string.IsNullOrEmpty(agent.agentId))
             {
                 statusMessage = $"Creating {agent.agentName}...";

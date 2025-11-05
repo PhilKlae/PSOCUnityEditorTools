@@ -16,4 +16,8 @@ public abstract class ToolBase : ScriptableObject
     public string status;
     public double createdAt;
     public bool isConfigured;
+    
+    [Header("Sync")]
+    // When true this tool will be excluded from any bulk sync operations
+    public bool excludeFromSync = false;
 }

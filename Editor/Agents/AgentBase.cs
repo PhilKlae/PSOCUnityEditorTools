@@ -20,6 +20,10 @@ public class AgentBase : PSOCQueryable
     [Range(1, 100)] public int maxIterations = 10;
     public bool verbose;
     
+    [Header("Sync")]
+    // When true this agent will be excluded from any bulk sync operations
+    public bool excludeFromSync = false;
+    
     [Header("Status")]
     public string status;
     public DateTime lastUpdated;

@@ -92,8 +92,14 @@ public class DataBucketManagerWindow : EditorWindow
         }
     }
 
-    private async void SyncAllBuckets()
+    public async void SyncAllBuckets()
     {
+        // expose as public for external callers
+        // made public so other windows can call this
+        // (keeps window-local UI state intact)
+        
+        // NOTE: method remains async void because it's used by Unity UI callbacks
+        
         if (isSyncing) return;
 
         var settings = ConnectionSettings.Instance;
@@ -110,6 +116,11 @@ public class DataBucketManagerWindow : EditorWindow
 
         foreach (var bucket in allBuckets)
         {
+            if (bucket.excludeFromSync)
+            {
+                Debug.Log($"Skipping excluded bucket {bucket.bucketName}");
+                continue;
+            }
             if (bucket.sourceFolder == null)
             {
                 Debug.LogWarning($"Skipping {bucket.bucketName} - no folder selected");
