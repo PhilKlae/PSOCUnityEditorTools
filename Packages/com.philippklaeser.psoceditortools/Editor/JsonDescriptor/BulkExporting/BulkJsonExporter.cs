@@ -4,7 +4,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace _Scripts.JsonDescriptor
+namespace JsonDescriptor
 {
     [CreateAssetMenu(fileName = "BulkExporter", menuName = "PSOC/BulkExporter")]
     public class BulkJsonExporter : ScriptableObject

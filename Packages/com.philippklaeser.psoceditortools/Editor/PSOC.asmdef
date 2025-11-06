@@ -2,7 +2,9 @@
     "name": "PSOC",
     "rootNamespace": "",
     "references": [
-        "Unity.Scripting.Python.Editor"
+        "Unity.Scripting.Python.Editor",
+        "JsonDescriptor",
+        "BulkJsonExporter"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

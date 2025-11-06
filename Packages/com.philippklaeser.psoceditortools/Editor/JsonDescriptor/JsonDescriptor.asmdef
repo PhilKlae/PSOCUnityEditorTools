@@ -1,6 +1,6 @@
 {
     "name": "JsonDescriptor",
-    "rootNamespace": "",
+    "rootNamespace": "JsonDescriptor",
     "references": [],
     "includePlatforms": [
         "Editor"

@@ -67,7 +67,7 @@ public class SyncManagerWindow : EditorWindow
             var exporter = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path) as ScriptableObject;
             if (exporter == null) continue;
 
-            var bulk = exporter as _Scripts.JsonDescriptor.BulkJsonExporter;
+            var bulk = exporter as JsonDescriptor.BulkJsonExporter;
             if (bulk != null)
             {
                 bulk.ExportAllTemplates();
