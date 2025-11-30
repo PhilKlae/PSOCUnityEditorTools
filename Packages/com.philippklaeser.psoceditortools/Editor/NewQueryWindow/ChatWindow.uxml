@@ -1,0 +1,19 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="Root" style="flex-grow: 1; flex-direction: row;">
+        <ui:VisualElement name="ChatListColumn" style="flex-grow: 1;">
+            <ui:ScrollView name="ChatsScrollview" />
+        </ui:VisualElement>
+        <ui:VisualElement name="GroupMessagesColumn" style="flex-grow: 1;">
+            <ui:ScrollView name="GroupMembersScrollView" />
+        </ui:VisualElement>
+        <ui:VisualElement name="ChatContentColumn" style="flex-grow: 1;">
+            <ui:VisualElement style="flex-grow: 1; height: 80%;">
+                <ui:ScrollView name="ChatHistory" />
+            </ui:VisualElement>
+            <ui:VisualElement name="VisualElement" style="flex-grow: 1; justify-content: flex-end; height: 10%; flex-direction: row; align-self: flex-end; align-items: flex-end;">
+                <ui:TextField placeholder-text="Your request here" name="ChatInput" style="align-items: stretch; justify-content: flex-start; align-self: flex-end; flex-direction: row; width: 443px; white-space: pre-wrap;" />
+                <ui:Button text="Send" name="SendButton" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

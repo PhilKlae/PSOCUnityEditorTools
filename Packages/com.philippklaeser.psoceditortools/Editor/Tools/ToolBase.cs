@@ -1,7 +1,7 @@
 // ToolBase.cs
 using UnityEngine;
 
-public enum ToolType { CodeLookup, ExampleRetriever, NERRetriever, NERLargeRetriever, NERSmallRetriever, SubAgent }
+public enum ToolType { CodeLookup, ExampleRetriever, NERRetriever, NERLargeRetriever, NERSmallRetriever, SubAgent, AskHuman }
 
 public abstract class ToolBase : ScriptableObject
 {

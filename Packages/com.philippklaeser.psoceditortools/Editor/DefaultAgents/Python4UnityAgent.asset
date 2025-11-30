@@ -22,5 +22,6 @@ MonoBehaviour:
     maxTokens: 1000
   maxIterations: 100
   verbose: 1
+  excludeFromSync: 0
   status: updated
   promptTextFile: {fileID: 4900000, guid: ad3f1f7e6d717834787e3f1c19ce1b8a, type: 3}

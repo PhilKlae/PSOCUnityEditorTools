@@ -196,8 +196,16 @@ public class ToolManagerWindow : EditorWindow
             ["name"] = tool.toolName,
             ["description"] = tool.description,
             ["data_directory"] = $"/storage/project_data/{settings.projectId}/{tool.dataBucket.bucketName}"
+
         };
 
+        AddToolTypeSpecificsToPayload(tool, basePayload);
+
+        return Newtonsoft.Json.JsonConvert.SerializeObject(basePayload);
+    }
+
+    private static void AddToolTypeSpecificsToPayload(ToolBase tool, Dictionary<string, object> basePayload)
+    {
         switch (tool)
         {
             case CodeLookupTool ct:
@@ -231,51 +239,36 @@ public class ToolManagerWindow : EditorWindow
                 basePayload["type"] = "agent_tool";
                 basePayload["agent_id"] = sa.agent.agentId;
                 break;
+            case AskHumanTool aht:
+                basePayload["type"] = "question_to_human";
+                break;
+            case VectorQueryEngineTool vqet:
+                basePayload["type"] = "vector_query_engine";
+                basePayload["chunk_size"] = vqet.ChunkSize;
+                basePayload["chunk_overlap"] = vqet.chunk_overlap;
+                basePayload["similarity_top_k"] = vqet.SimilarityTopK;
+                basePayload["response_mode"] = vqet.responseMode.ToString().ToLower();
+                basePayload["include_text"] = vqet.IncludeText;
+                break;
         }
-
-        return Newtonsoft.Json.JsonConvert.SerializeObject(basePayload);
     }
 
     private string CreateUpdatePayloadForTool(ToolBase tool)
     {
+        var settings = ConnectionSettings.Instance;
+        
         var payload = new Dictionary<string, object>
         {
             ["id"] = tool.toolId,
             ["name"] = tool.toolName,
-            ["description"] = tool.description
+            ["description"] = tool.description,
+            ["data_directory"] = $"/storage/project_data/{settings.projectId}/{tool.dataBucket.bucketName}"
+            
         };
 
-        switch (tool)
-        {
-            case CodeLookupTool ct:
-                payload.Add("similarity_threshold", ct.similarityThreshold);
-                payload.Add("max_matches", ct.maxMatches);
-                payload.Add("file_extensions", ct.fileExtensions);
-                payload.Add("index_strategy", ct.indexStrategy);
-                break;
-
-            case ExampleRetrieverTool et:
-                payload.Add("focused_fields", et.focusedFields);
-                payload.Add("similarity_top_k", et.similarityTopK);
-                payload.Add("include_full_json", et.includeFullJson);
-                break;
-
-            case NERSmallRetrieverTool nst:
-                payload["focused_fields"] = nst.included_fields;
-                payload["choice_description"] = nst.choiceDescription;
-                payload["id_field"] = nst.idField;
-                break;
-            case NERLargeRetrieverTool nlt:
-                payload["focused_fields"] = nlt.fields_for_embedding_search;
-                payload["focused_fields_fuzzy_search"] = nlt.fields_for_fuzzy_search;
-                payload["id_field"] = nlt.idField;
-                break;
-            case SubAgent sa:
-                payload["type"] = "agent_tool";
-                payload["agent_id"] = sa.agent.agentId;
-                break;
-        }
-
+        AddToolTypeSpecificsToPayload(tool, payload);
+        payload.Remove("type"); // type cannot be updated
+        
         return Newtonsoft.Json.JsonConvert.SerializeObject(payload);
     }
 

@@ -2,7 +2,7 @@
     "name": "BulkJsonExporter",
     "rootNamespace": "",
     "references": [
-        "GUID:f0f1e7b958cc88e4c9fd7f80a45c02d4"
+        "GUID:4b43a04ce20d4e34abdd4f2ab163c50f"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
