@@ -248,6 +248,8 @@ public async void SyncAllAgents()
             max_iterations = agent.maxIterations,
             verbose = agent.verbose,
             default_prompt = defaultPrompt,
+            use_rails = agent.useRailGuarding,
+            rails_string = agent.railGuardingFile != null ? agent.railGuardingFile.text : ""
         });
     }
 }

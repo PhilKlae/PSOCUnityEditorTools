@@ -10,7 +10,6 @@ public abstract class ToolBase : ScriptableObject
     public string toolName;
     [TextArea] public string description;
     public DataBucketConfig dataBucket;
-    public ToolType toolType;
     
     [Header("Status")]
     public string status;

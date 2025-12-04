@@ -50,7 +50,7 @@ public class ToolManagerWindow : EditorWindow
     {
         EditorGUILayout.BeginVertical(GUI.skin.box);
 
-        EditorGUILayout.LabelField($"{tool.toolType}: {tool.toolName}", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField($"{tool.GetType().Name}: {tool.toolName}", EditorStyles.boldLabel);
         EditorGUILayout.ObjectField("Data Bucket", tool.dataBucket, typeof(DataBucketConfig), false);
 
         EditorGUILayout.BeginHorizontal();
@@ -269,6 +269,7 @@ public class ToolManagerWindow : EditorWindow
         AddToolTypeSpecificsToPayload(tool, payload);
         payload.Remove("type"); // type cannot be updated
         
+        Debug.Log("Update Payload: " + JsonConvert.SerializeObject(payload));
         return Newtonsoft.Json.JsonConvert.SerializeObject(payload);
     }
 

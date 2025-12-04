@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d26f8a5b84d679d4b9317366f591c272, type: 3}
   m_Name: Python4UnityAgent
   m_EditorClassIdentifier: 
-  agentId: 6880cfdeced8ad53ff758bf1
+  agentId: 692d7aa048c33c63307a3ac5
   agentName: Python4UnityAgent
   description: This agent can be used to create
   tools: []
@@ -25,3 +25,5 @@ MonoBehaviour:
   excludeFromSync: 0
   status: updated
   promptTextFile: {fileID: 4900000, guid: ad3f1f7e6d717834787e3f1c19ce1b8a, type: 3}
+  useRailGuarding: 0
+  railGuardingFile: {fileID: 0}
