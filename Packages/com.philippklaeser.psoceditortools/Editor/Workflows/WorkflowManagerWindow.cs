@@ -240,13 +240,35 @@ private async void SyncAllWorkflows()
                 agent_ids.Add(agent.agentId);
             }
         }
-        return Newtonsoft.Json.JsonConvert.SerializeObject(new
+
+
+
+        // there are 2 types of workflows, regular ones and blackboard ones, switch on the type
+        switch (workflow)
         {
-            name = workflow.name,
-            description = workflow.Description,
-            agents = agent_ids,
-            root_agent = workflow.RootAgent.agentId,
-        });
+            case BlackboardWorkflow blackboardWorkflow:
+                return Newtonsoft.Json.JsonConvert.SerializeObject(new
+                {
+                    name = workflow.name,
+                    description = workflow.Description,
+                    agents = agent_ids,
+                    root_agent = workflow.RootAgent.agentId,
+                    is_blackboard = true,
+                    agent_name_to_index = blackboardWorkflow.GetAgentNameToIndexMapping(),
+                    selector_agent_indices = blackboardWorkflow.GetSelectorAgentIndices()
+                });
+
+            default:
+                return Newtonsoft.Json.JsonConvert.SerializeObject(new
+                {
+                    name = workflow.name,
+                    description = workflow.Description,
+                    agents = agent_ids,
+                    root_agent = workflow.RootAgent.agentId,
+                });
+        }
+
+        
     }
 }
 #endif

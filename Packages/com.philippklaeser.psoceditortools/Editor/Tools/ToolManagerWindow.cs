@@ -250,6 +250,9 @@ public class ToolManagerWindow : EditorWindow
                 basePayload["response_mode"] = vqet.responseMode.ToString().ToLower();
                 basePayload["include_text"] = vqet.IncludeText;
                 break;
+            case EditBlackboardTool ebt:
+                basePayload["type"] = "edit_blackboard";
+                break;
         }
     }
 

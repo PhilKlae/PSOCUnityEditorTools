@@ -40,6 +40,7 @@ public class AgentBase : PSOCQueryable
 
     [Header("Rail Guarding")]
     public bool useRailGuarding = false;
+    public TextAsset autoRailGuardingInputFile;
     public TextAsset railGuardingFile;
     
     // this method combines the user query with the default prompt text
@@ -63,7 +64,22 @@ public class AgentBase : PSOCQueryable
     {
         // use connection settings and call the backend at url /v1/query/generate_rails_string
         var settings = ConnectionSettings.Instance;
-        var url = $"http://{settings.serverIP}:{settings.serverPort}/v1/query/generate_rails_string?agent_id={agentId}";
+        
+        // we use this endpoint when there is no rail guarding input file, otherwise we use /v1/query/generate_rails_string_from_file
+        var url_from_prompt = $"http://{settings.serverIP}:{settings.serverPort}/v1/query/generate_rails_string?agent_id={agentId}";
+        var url_from_file = $"http://{settings.serverIP}:{settings.serverPort}/v1/query/generate_rails_string_2?input_text=";
+        
+        var url = "";
+        if (autoRailGuardingInputFile == null)
+        {
+            url = url_from_prompt;
+        }
+        else
+        {
+            var inputText = UnityWebRequest.EscapeURL(autoRailGuardingInputFile.text);
+            url = url_from_file + inputText;
+        }
+        
         var request = new UnityWebRequest(url, "GET");            
      
         request.downloadHandler = new DownloadHandlerBuffer();
@@ -115,7 +131,7 @@ public class PSOCQueryable : ScriptableObject
 [Serializable]
 public class LLMConfig
 {
-    public string modelName = "gpt-4";
+    public string modelName = "gpt-5.2-2025-12-11";
     [Range(0, 1)] public float temperature = 0.7f;
     public int maxTokens = 1000;
 }

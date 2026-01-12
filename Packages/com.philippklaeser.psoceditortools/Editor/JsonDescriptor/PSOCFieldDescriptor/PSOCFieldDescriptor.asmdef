@@ -1,12 +1,7 @@
 {
-    "name": "PSOC",
+    "name": "PSOCFieldDescriptor",
     "rootNamespace": "",
-    "references": [
-        "Unity.Scripting.Python.Editor",
-        "JsonDescriptor",
-        "BulkJsonExporter",
-        "PSOCFieldDescriptor"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
