@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 82136838cd6378b4db7dad16ad65a418
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - RootAgent: {instanceID: 0}
+  - ControlUnityPromptTemplate: {fileID: 4900000, guid: 7d97754b128bb7e458a3f78845de9c26,
+      type: 3}
+  - expertPromptTemplate: {fileID: 4900000, guid: 726a002fb99624e439d766a598b9328f,
+      type: 3}
+  - subExpertPromptTemplate: {fileID: 4900000, guid: 7d8c0b2811dcfe74190a32e970a2cc0d,
+      type: 3}
+  - selectorPromptTemplate: {fileID: 4900000, guid: 8609698bdfbb6f6458b7874621b12999,
+      type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

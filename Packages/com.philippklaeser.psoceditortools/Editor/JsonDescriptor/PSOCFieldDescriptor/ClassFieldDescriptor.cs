@@ -23,6 +23,23 @@ public class FieldDocAttribute : Attribute
     }
 }
 
+/// <summary>
+/// Fields marked with this attribute will be marked as references to other objects. This attribute
+/// is used to collect a list of possible types that can be referenced, in order to guardrail
+/// automated reference resolution systems.
+/// </summary>
+[AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+public class FieldRefAttribute : Attribute
+{
+    public Type[] ReferencableTypes { get; } 
+
+    public FieldRefAttribute(params Type[] referencableTypes)
+    {
+        ReferencableTypes = referencableTypes;
+    }
+   
+}
+
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 public class ClassDocAttribute : Attribute
 {
@@ -41,6 +58,7 @@ public class FieldDescriptionEntry
     public string fieldName;
     public string fieldType;     // Fully-qualified type name
     public string description;   // Human-readable + type info appended
+    public List<string> referenceTypeNames = new List<string>();
 }
 
 [Serializable]
@@ -58,6 +76,8 @@ public class ClassFieldDescriptorData
 /// </summary>
 public static class ClassFieldDescriptor
 {
+    private static readonly Dictionary<Type, List<string>> ReferenceTypeCache = new Dictionary<Type, List<string>>();
+
     /// <summary>
     /// Describe a class by its full name or simple name.
     /// Searches all loaded assemblies.
@@ -110,6 +130,31 @@ public static class ClassFieldDescriptor
         }
 
         return Describe(type, requireFieldDoc);
+    }
+
+     // returns all possible type names that can be referenced by this type (that are marked with [FieldRef])
+    public static List<string> GetReferencableTypeNames(Type type)
+    {
+        // the type may have multiple FieldRef attributes, we should collect all possible types from all of them
+        
+        var fields = type.GetFields(
+            BindingFlags.Instance |
+            BindingFlags.Public |
+            BindingFlags.NonPublic |
+            BindingFlags.DeclaredOnly);
+        List<string> allTypeNames = new List<string>();
+        
+        foreach (var field in fields)
+        {
+            var referenceAttribute = field.GetCustomAttribute<FieldRefAttribute>(inherit: true);
+            if (referenceAttribute != null)
+            {
+                var referenceTypeNames = ResolveReferenceTypeNames(referenceAttribute);
+                allTypeNames.AddRange(referenceTypeNames);
+            }
+        } 
+
+        return allTypeNames.Distinct().OrderBy(n => n).ToList();
     }
 #endif
 
@@ -196,6 +241,16 @@ public static class ClassFieldDescriptor
 
                 entry.description = $"{baseDescription})";
 
+                var referenceAttribute = field.GetCustomAttribute<FieldRefAttribute>(inherit: true);
+                if (referenceAttribute != null)
+                {
+                    var referenceTypeNames = ResolveReferenceTypeNames(referenceAttribute);
+                    if (referenceTypeNames.Count > 0)
+                    {
+                        entry.referenceTypeNames.AddRange(referenceTypeNames);
+                    }
+                }
+
                 result.fields.Add(entry);
             }
 
@@ -262,5 +317,120 @@ public static class ClassFieldDescriptor
         }
 
         return null;
+    }
+
+    private static List<string> ResolveReferenceTypeNames(FieldRefAttribute referenceAttribute)
+    {
+        if (referenceAttribute == null || referenceAttribute.ReferencableTypes == null)
+            return new List<string>();
+
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var declaredType in referenceAttribute.ReferencableTypes)
+        {
+            foreach (var typeName in GetAssignableTypeNames(declaredType))
+            {
+                names.Add(typeName);
+            }
+        }
+
+        return names.OrderBy(n => n).ToList();
+    }
+
+    private static IEnumerable<string> GetAssignableTypeNames(Type baseType)
+    {
+        if (baseType == null)
+            yield break;
+
+        if (!ReferenceTypeCache.TryGetValue(baseType, out var cached))
+        {
+            cached = BuildAssignableTypeNameCache(baseType);
+            ReferenceTypeCache[baseType] = cached;
+        }
+
+        for (var i = 0; i < cached.Count; i++)
+        {
+            yield return cached[i];
+        }
+    }
+
+    private static List<string> BuildAssignableTypeNameCache(Type baseType)
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var candidate in EnumerateAssignableTypes(baseType))
+        {
+            var fullName = candidate.FullName ?? candidate.Name;
+            names.Add(fullName);
+        }
+
+        return names.OrderBy(n => n).ToList();
+    }
+
+    private static IEnumerable<Type> EnumerateAssignableTypes(Type baseType)
+    {
+        if (baseType == null)
+            yield break;
+
+        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        foreach (var assembly in assemblies)
+        {
+            if (!IsUserCodeAssembly(assembly, baseType.Assembly))
+                continue;
+
+            Type[] types;
+            try
+            {
+                types = assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                types = ex.Types;
+            }
+
+            if (types == null)
+                continue;
+
+            for (var i = 0; i < types.Length; i++)
+            {
+                var candidate = types[i];
+                if (candidate == null)
+                    continue;
+
+                if (candidate.IsAbstract)
+                    continue;
+
+                if (candidate.IsGenericTypeDefinition)
+                    continue;
+
+                if (!baseType.IsAssignableFrom(candidate))
+                    continue;
+
+                yield return candidate;
+            }
+        }
+    }
+
+    private static bool IsUserCodeAssembly(Assembly assembly, Assembly baseAssembly)
+    {
+        if (assembly == null)
+            return false;
+
+        if (assembly == baseAssembly)
+            return true;
+
+        if (assembly.IsDynamic)
+            return false;
+
+        try
+        {
+            var location = assembly.Location;
+            if (string.IsNullOrEmpty(location))
+                return false;
+
+            return location.IndexOf("Library\\ScriptAssemblies", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+        catch (NotSupportedException)
+        {
+            return false;
+        }
     }
 }

@@ -257,6 +257,27 @@ private async void SyncAllWorkflows()
                     agent_name_to_index = blackboardWorkflow.GetAgentNameToIndexMapping(),
                     selector_agent_indices = blackboardWorkflow.GetSelectorAgentIndices()
                 });
+            case GraphDesignerWorkflow graphDesignerWorkflow:
+
+                // create a jsonobject to store possible nodetypes and possible edges 
+                var possibleNodes = graphDesignerWorkflow.GetPossibleNodes();
+                var possibleEdges = graphDesignerWorkflow.GetPossibleEdgesForNodes();                                
+                var node_descriptions = graphDesignerWorkflow.GetNodeDescriptions();
+                Dictionary<string, object> nodesDict = new Dictionary<string, object>();
+                nodesDict["possible_nodes"] = possibleNodes;
+                nodesDict["possible_edges"] = possibleEdges;   
+                nodesDict["node_descriptions"] = node_descriptions;             
+
+                var json = Newtonsoft.Json.JsonConvert.SerializeObject(new
+                {
+                    name = workflow.name,
+                    description = workflow.Description,
+                    agents = agent_ids,
+                    root_agent = workflow.RootAgent.agentId,
+                    is_graph_designer = true,       
+                    misc_data = nodesDict             
+                });
+                return json;
 
             default:
                 return Newtonsoft.Json.JsonConvert.SerializeObject(new

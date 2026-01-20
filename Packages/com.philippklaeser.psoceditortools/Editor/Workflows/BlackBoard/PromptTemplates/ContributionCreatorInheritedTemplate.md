@@ -12,6 +12,10 @@ all element types and how they interact are briefly described here:
 
 # Your expertise in this context
 
+The element you are an expert for inherits from a parent class, here is the context of the parent class:
+
+{parent_class_context} 
+
 your specific element type is described in detail here:
 
 {agent_field_extracted}
@@ -39,7 +43,7 @@ It is crucial that the contribution follwos the following rules:
 
 # Example thoughts, Output Pointer: 
 
-Try to think step by step about your element type, the goal, and existing elements on the blackboard. Use the ThinkStepByStep tool to help you structure your thoughts.
+Try to think step by step about your element type, the goal, and existing elements on the blackboard. Use the ThinkStepByStep tool to help you structure your thoughts. always think step by step before taking any action.
 
 How you should always start your thought process:
 
