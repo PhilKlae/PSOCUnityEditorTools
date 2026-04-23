@@ -32,6 +32,11 @@ namespace Packages.PSOC.Workflows
             Debug.Log("Possible Nodes:\n" + nodesJson);
             Debug.Log("Possible Edges:\n" + edgesJson);
 
+            // also test getting node descriptions
+            var descriptions = GetNodeDescriptions();
+            string descriptionsJson = JsonConvert.SerializeObject(descriptions, Formatting.Indented);
+            Debug.Log("Node Descriptions:\n" + descriptionsJson);
+
         }
 
         public List<string> GetPossibleNodes()
@@ -105,7 +110,7 @@ namespace Packages.PSOC.Workflows
                     foreach (var classEntry in group.Implementations)
                     {                                                
                         // get connectable classes                        
-                        dict[classEntry.TargetScript.GetClass().Name ] = string.IsNullOrEmpty(classEntry.DescriptionOverride) ? ClassFieldDescriptor.Describe(group.BaseClassScript) : classEntry.DescriptionOverride;
+                        dict[classEntry.TargetScript.GetClass().Name ] = string.IsNullOrEmpty(classEntry.DescriptionOverride) ? ClassFieldDescriptor.Describe(classEntry.TargetScript) : classEntry.DescriptionOverride;
                     }
                 }
             }
