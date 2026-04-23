@@ -6,6 +6,7 @@ using System.Text;
 using UnityEngine;
 using UnityEditor;
 using Newtonsoft.Json;
+using Packages.PSOC.Workflows.Graph;
 
 namespace Packages.PSOC.Workflows
 {
@@ -18,8 +19,31 @@ namespace Packages.PSOC.Workflows
         [SerializeField]
         private List<BlackboardClassGroup> classGroups;
 
+        private ReferenceGraph _detailedGraph;
+        private bool _graphBuilt;
 
         public IReadOnlyList<BlackboardClassGroup> ClassGroups => classGroups;
+
+        /// <summary>
+        /// Gets or builds the detailed reference graph that contains per-field reference information.
+        /// </summary>
+        public ReferenceGraph GetDetailedReferenceGraph()
+        {
+            if (!_graphBuilt)
+            {
+                _detailedGraph = ReferenceGraphBuilder.BuildGraphFromBlackboardClassGroups(classGroups);
+                _graphBuilt = true;
+            }
+            return _detailedGraph;
+        }
+        [ContextMenu("Test Reference Graph")]
+        private void TestReferenceGraph()
+        {
+            var graph = GetDetailedReferenceGraph();
+            var tree = graph.PrintAsTree();
+            Debug.Log(tree);
+        }
+
         [ContextMenu("Test Misc Data")]
         private void TestMiscData()
         {
@@ -37,6 +61,24 @@ namespace Packages.PSOC.Workflows
             string descriptionsJson = JsonConvert.SerializeObject(descriptions, Formatting.Indented);
             Debug.Log("Node Descriptions:\n" + descriptionsJson);
 
+            // test the detailed graph
+            var detailedGraph = GetDetailedReferenceGraph();
+            Debug.Log($"Detailed Graph: {detailedGraph}");
+            Debug.Log($"Total edges in detailed graph: {detailedGraph.Edges.Count}");
+            
+            // Log edges grouped by source class
+            foreach (var node in detailedGraph.Nodes)
+            {
+                var outgoing = detailedGraph.GetOutgoingEdges(node).ToList();
+                if (outgoing.Count > 0)
+                {
+                    Debug.Log($"{node.ClassName} has {outgoing.Count} outgoing edges:");
+                    foreach (var edge in outgoing)
+                    {
+                        Debug.Log($"  - Field '{edge.FieldName}' -> {edge.TargetNode.ClassName} (type: {edge.ReferencedTypeName})");
+                    }
+                }
+            }
         }
 
         public List<string> GetPossibleNodes()
@@ -65,31 +107,8 @@ namespace Packages.PSOC.Workflows
 
         public Dictionary<string, List<string>> GetPossibleEdgesForNodes()
         {
-            var dict = new Dictionary<string, List<string>>();
-
-            // go through each class group or class group child
-            foreach (var group in classGroups)
-            {
-                
-                if (group.Implementations.Count == 0)
-                {
-                    // get connectable classes                    
-                    dict[group.BaseClassScript.GetClass().Name] = ClassFieldDescriptor.GetReferencableTypeNames(group.BaseClassScript.GetClass());
-                }
-                else
-                {
-                    foreach (var classEntry in group.Implementations)
-                    {
-                        var possibleEdges = new List<string>();                                                
-                        // get connectable classes
-                        possibleEdges.AddRange(ClassFieldDescriptor.GetReferencableTypeNames(classEntry.TargetScript.GetClass()));
-                    
-                        dict[classEntry.TargetScript.GetClass().Name ] = possibleEdges;
-                    }
-                }
-            }
-
-            return dict;
+            var detailedGraph = GetDetailedReferenceGraph();
+            return detailedGraph.DeriveSimplifiedGraph();
         } 
 
         public Dictionary<string,string> GetNodeDescriptions()
