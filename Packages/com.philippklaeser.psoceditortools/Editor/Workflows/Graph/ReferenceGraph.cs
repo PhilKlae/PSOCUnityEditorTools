@@ -192,6 +192,7 @@ namespace Packages.PSOC.Workflows.Graph
 
         /// <summary>
         /// Prints the graph as a tree structure, expanding each node only once to avoid duplication.
+        /// Shows both class names and the field names that create references.
         /// Returns the tree representation as a string.
         /// </summary>
         public string PrintAsTree()
@@ -201,7 +202,7 @@ namespace Packages.PSOC.Workflows.Graph
 
             foreach (var node in _nodes.OrderBy(n => n.ClassName))
             {
-                PrintNodeAsTree(node, output, expandedNodes, "", isLastChild: true);
+                PrintNodeAsTree(node, output, expandedNodes, "", isLastChild: true, isRootNode: true);
                 output.AppendLine();
             }
 
@@ -209,38 +210,61 @@ namespace Packages.PSOC.Workflows.Graph
         }
 
         /// <summary>
-        /// Recursively prints a node and its children as a tree.
+        /// Recursively prints a node and its children as a tree, including field names.
         /// </summary>
         private void PrintNodeAsTree(GraphNode node, System.Text.StringBuilder output, 
-            HashSet<string> expandedNodes, string indent, bool isLastChild)
+            HashSet<string> expandedNodes, string indent, bool isLastChild, bool isRootNode = false)
         {
-            // Print the current node
-            string prefix = isLastChild ? "└── " : "├── ";
-            output.Append(indent + prefix + node.ClassName);
-
-            // Check if this node has already been expanded
-            if (expandedNodes.Contains(node.ClassName))
+            // Print the current node (only if it's a root node or we're showing it for the first time)
+            if (isRootNode)
             {
+                string prefix = isLastChild ? "└── " : "├── ";
+                output.Append(indent + prefix + node.ClassName);
+                output.AppendLine();
+                expandedNodes.Add(node.ClassName);
+            }
+            else if (!expandedNodes.Contains(node.ClassName))
+            {
+                string prefix = isLastChild ? "└── " : "├── ";
+                output.Append(indent + prefix + node.ClassName);
+                output.AppendLine();
+                expandedNodes.Add(node.ClassName);
+            }
+            else
+            {
+                string prefix = isLastChild ? "└── " : "├── ";
+                output.Append(indent + prefix + node.ClassName);
                 output.AppendLine(" (already expanded)");
                 return;
             }
 
-            output.AppendLine();
-            expandedNodes.Add(node.ClassName);
+            // Get outgoing edges from this node, grouped by field name
+            var edgesByField = GetOutgoingEdges(node)
+                .GroupBy(e => e.FieldName)
+                .OrderBy(g => g.Key)
+                .ToList();
 
-            // Get outgoing edges from this node
-            var outgoingEdges = GetOutgoingEdges(node).OrderBy(e => e.TargetNode.ClassName).ToList();
-
-            // Print each child
-            for (int i = 0; i < outgoingEdges.Count; i++)
+            for (int fieldIndex = 0; fieldIndex < edgesByField.Count; fieldIndex++)
             {
-                var edge = outgoingEdges[i];
-                bool isLast = i == outgoingEdges.Count - 1;
-                
-                // Build the new indent for children
-                string newIndent = indent + (isLastChild ? "    " : "│   ");
-                
-                PrintNodeAsTree(edge.TargetNode, output, expandedNodes, newIndent, isLast);
+                var fieldGroup = edgesByField[fieldIndex];
+                bool isLastField = fieldIndex == edgesByField.Count - 1;
+
+                // Print field name
+                string fieldPrefix = isLastField ? "└── " : "├── ";
+                string fieldIndent = indent + (isLastChild ? "    " : "│   ");
+                output.Append(fieldIndent + fieldPrefix + fieldGroup.Key);
+                output.AppendLine();
+
+                // Print target nodes for this field
+                var targetNodes = fieldGroup.OrderBy(e => e.TargetNode.ClassName).ToList();
+                for (int nodeIndex = 0; nodeIndex < targetNodes.Count; nodeIndex++)
+                {
+                    var edge = targetNodes[nodeIndex];
+                    bool isLastNode = nodeIndex == targetNodes.Count - 1;
+                    
+                    string nodeIndent = fieldIndent + (isLastField ? "    " : "│   ");
+                    PrintNodeAsTree(edge.TargetNode, output, expandedNodes, nodeIndent, isLastNode);
+                }
             }
         }
 

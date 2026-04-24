@@ -20,7 +20,7 @@ namespace Packages.PSOC.Workflows
         private List<BlackboardClassGroup> classGroups;
 
         private ReferenceGraph _detailedGraph;
-        private bool _graphBuilt;
+
 
         public IReadOnlyList<BlackboardClassGroup> ClassGroups => classGroups;
 
@@ -29,11 +29,14 @@ namespace Packages.PSOC.Workflows
         /// </summary>
         public ReferenceGraph GetDetailedReferenceGraph()
         {
-            if (!_graphBuilt)
+
+            /*_detailedGraph = ReferenceGraphBuilder.BuildGraphFromBlackboardClassGroups(classGroups);*/
+            var rootType = new List<Type>
             {
-                _detailedGraph = ReferenceGraphBuilder.BuildGraphFromBlackboardClassGroups(classGroups);
-                _graphBuilt = true;
-            }
+                classGroups[0].BaseClassScript.GetClass()
+            };
+            _detailedGraph = ReferenceGraphBuilder.BuildGraphFromTypes(rootType);
+            
             return _detailedGraph;
         }
         [ContextMenu("Test Reference Graph")]
