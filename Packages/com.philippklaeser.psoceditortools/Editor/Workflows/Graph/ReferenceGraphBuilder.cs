@@ -15,39 +15,69 @@ namespace Packages.PSOC.Workflows.Graph
         /// <summary>
         /// Builds a detailed reference graph from the given types.
         /// Each field marked with [FieldRef] will create edges for each possible reference type.
+        /// This overload explores referenced types recursively, so a single root type can generate
+        /// the full reachable graph rather than only the first layer of references.
         /// </summary>
         public static ReferenceGraph BuildGraphFromTypes(IEnumerable<Type> types)
+        {
+            return BuildGraphFromTypes(types, types);
+        }
+
+        /// <summary>
+        /// Builds a detailed reference graph from the given types.
+        /// Each field marked with [FieldRef] will create edges for each possible reference type.
+        /// This overload explores referenced types recursively, so a single root type can generate
+        /// the full reachable graph rather than only the first layer of references.
+        /// </summary>
+        public static ReferenceGraph BuildGraphFromTypesWithRoot(IEnumerable<Type> types, IEnumerable<Type> rootTypes)
+        {
+            return BuildGraphFromTypes(types, rootTypes);
+        }
+
+        /// <summary>
+        /// Builds a detailed reference graph from the given types, starting from the specified root types.
+        /// Only types reachable from the root classes will be included in the resulting graph.
+        /// </summary>
+        public static ReferenceGraph BuildGraphFromTypes(IEnumerable<Type> types, IEnumerable<Type> rootTypes)
         {
             if (types == null)
                 throw new ArgumentNullException(nameof(types));
 
+            var typeList = types.Where(t => t != null).Distinct().ToList();
+            var rootTypeList = (rootTypes ?? typeList).Where(t => t != null).Distinct().ToList();
+
+            if (rootTypeList.Count == 0)
+                throw new ArgumentException("At least one root type must be provided.", nameof(rootTypes));
+
             var graph = new ReferenceGraph();
-            var typeList = types.ToList();
+            var visited = new HashSet<Type>();
+            var remaining = new Queue<Type>(rootTypeList);
 
-            // First, add all nodes
-            foreach (var type in typeList)
+            while (remaining.Count > 0)
             {
-                graph.AddNode(type.Name);
-            }
+                var sourceType = remaining.Dequeue();
+                if (sourceType == null || !visited.Add(sourceType))
+                    continue;
 
-            // Then, for each type, find all reference fields and add edges
-            foreach (var sourceType in typeList)
-            {
                 var sourceNode = graph.GetOrAddNode(sourceType.Name);
+
                 var fields = GetReferenceFields(sourceType);
 
                 foreach (var field in fields)
                 {
                     var fieldRefAttribute = field.GetCustomAttribute<FieldRefAttribute>(inherit: true);
-                    if (fieldRefAttribute != null)
+                    if (fieldRefAttribute == null)
+                        continue;
+
+                    // For each referencable type in this field, add an edge and explore it recursively.
+                    var referencableTypes = ResolveReferencableTypes(fieldRefAttribute);
+                    foreach (var refType in referencableTypes)
                     {
-                        // For each referencable type in this field, add an edge
-                        var referencableTypes = ResolveReferencableTypes(fieldRefAttribute);
-                        foreach (var refType in referencableTypes)
-                        {
-                            var targetNode = graph.GetOrAddNode(refType.Name);
-                            graph.AddEdge(sourceNode, targetNode, field.Name, refType.FullName);
-                        }
+                        var targetNode = graph.GetOrAddNode(refType.Name);
+                        graph.AddEdge(sourceNode, targetNode, field.Name, refType.FullName);
+
+                        if (!visited.Contains(refType))
+                            remaining.Enqueue(refType);
                     }
                 }
             }
@@ -60,6 +90,20 @@ namespace Packages.PSOC.Workflows.Graph
         /// Used with the workflow's BlackboardClassGroup structure.
         /// </summary>
         public static ReferenceGraph BuildGraphFromBlackboardClassGroups(
+            IEnumerable<BlackboardClassGroup> classGroups)
+        {
+            if (classGroups == null)
+                throw new ArgumentNullException(nameof(classGroups));
+
+            var types = GetTypesFromClassGroups(classGroups);
+            return BuildGraphFromTypes(types);
+        }
+
+        /// <summary>
+        /// Builds a detailed reference graph from classes in the given class groups.
+        /// Used with the workflow's BlackboardClassGroup structure.
+        /// </summary>
+        public static List<Type> GetTypesFromClassGroups(
             IEnumerable<BlackboardClassGroup> classGroups)
         {
             if (classGroups == null)
@@ -88,7 +132,7 @@ namespace Packages.PSOC.Workflows.Graph
                 }
             }
 
-            return BuildGraphFromTypes(types);
+            return types;
         }
 
         /// <summary>

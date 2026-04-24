@@ -35,7 +35,7 @@ namespace Packages.PSOC.Workflows
             {
                 classGroups[0].BaseClassScript.GetClass()
             };
-            _detailedGraph = ReferenceGraphBuilder.BuildGraphFromTypes(rootType);
+            _detailedGraph = ReferenceGraphBuilder.BuildGraphFromTypesWithRoot(ReferenceGraphBuilder.GetTypesFromClassGroups(classGroups),rootType);
             
             return _detailedGraph;
         }

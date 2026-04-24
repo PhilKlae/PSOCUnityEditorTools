@@ -95,6 +95,7 @@ namespace Packages.PSOC.Workflows.Graph
     /// </summary>
     public class ReferenceGraph
     {
+        private readonly List<GraphNode> _rootNodes = new List<GraphNode>();
         private readonly HashSet<GraphNode> _nodes = new HashSet<GraphNode>();
         private readonly List<ReferenceGraphEdge> _edges = new List<ReferenceGraphEdge>();
 
@@ -102,6 +103,11 @@ namespace Packages.PSOC.Workflows.Graph
         /// Gets a read-only view of all nodes in the graph.
         /// </summary>
         public IReadOnlyList<GraphNode> Nodes => _nodes.ToList();
+
+        /// <summary>
+        /// Gets a read-only view of all nodes in the graph.
+        /// </summary>
+        public IReadOnlyList<GraphNode> RootNodes => _rootNodes;
 
         /// <summary>
         /// Gets a read-only view of all edges in the graph.
@@ -128,6 +134,15 @@ namespace Packages.PSOC.Workflows.Graph
                 return existing;
 
             return AddNode(className);
+        }
+
+        public bool SetNodeAsRoot(GraphNode node)
+        {
+            if (_rootNodes.Contains(node))
+                return false;
+            
+            _rootNodes.Add(node);
+            return true;
         }
 
         /// <summary>
@@ -199,14 +214,26 @@ namespace Packages.PSOC.Workflows.Graph
         {
             var output = new System.Text.StringBuilder();
             var expandedNodes = new HashSet<string>();
-
-            foreach (var node in _nodes.OrderBy(n => n.ClassName))
+            UpdateRootNodes();
+            foreach (var node in RootNodes)
             {
                 PrintNodeAsTree(node, output, expandedNodes, "", isLastChild: true, isRootNode: true);
                 output.AppendLine();
             }
 
             return output.ToString();
+        }
+        
+        public void UpdateRootNodes()
+        {
+            _rootNodes.Clear();
+            foreach (var node in _nodes)
+            {
+                if (!GetIncomingEdges(node).Any())
+                {
+                    SetNodeAsRoot(node);
+                }
+            }
         }
 
         /// <summary>
@@ -219,6 +246,7 @@ namespace Packages.PSOC.Workflows.Graph
             if (isRootNode)
             {
                 string prefix = isLastChild ? "└── " : "├── ";
+                prefix += "TPYE: ";
                 output.Append(indent + prefix + node.ClassName);
                 output.AppendLine();
                 expandedNodes.Add(node.ClassName);
@@ -226,6 +254,7 @@ namespace Packages.PSOC.Workflows.Graph
             else if (!expandedNodes.Contains(node.ClassName))
             {
                 string prefix = isLastChild ? "└── " : "├── ";
+                prefix += "TPYE: ";
                 output.Append(indent + prefix + node.ClassName);
                 output.AppendLine();
                 expandedNodes.Add(node.ClassName);
@@ -233,6 +262,7 @@ namespace Packages.PSOC.Workflows.Graph
             else
             {
                 string prefix = isLastChild ? "└── " : "├── ";
+                prefix += "TPYE: ";
                 output.Append(indent + prefix + node.ClassName);
                 output.AppendLine(" (already expanded)");
                 return;
@@ -251,6 +281,7 @@ namespace Packages.PSOC.Workflows.Graph
 
                 // Print field name
                 string fieldPrefix = isLastField ? "└── " : "├── ";
+                fieldPrefix += "FIELD: ";
                 string fieldIndent = indent + (isLastChild ? "    " : "│   ");
                 output.Append(fieldIndent + fieldPrefix + fieldGroup.Key);
                 output.AppendLine();
