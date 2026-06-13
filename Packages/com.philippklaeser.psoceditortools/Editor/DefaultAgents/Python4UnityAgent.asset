@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d26f8a5b84d679d4b9317366f591c272, type: 3}
   m_Name: Python4UnityAgent
   m_EditorClassIdentifier: 
-  agentId: 69541ffa660742122465d519
+  agentId: 69f0faa5515bb5dc43227de4
   agentName: Python4UnityAgent
   description: This agent can be used to create
   tools: []

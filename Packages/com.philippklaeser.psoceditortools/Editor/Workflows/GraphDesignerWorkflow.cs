@@ -21,6 +21,10 @@ namespace Packages.PSOC.Workflows
 
         private ReferenceGraph _detailedGraph;
 
+        [SerializeField]
+        private VectorQueryEngineTool SemanticClassQueryEngineTool;
+
+        public string SemanticClassQueryEngineID => SemanticClassQueryEngineTool != null ? SemanticClassQueryEngineTool.toolId : null;
 
         public IReadOnlyList<BlackboardClassGroup> ClassGroups => classGroups;
 
@@ -36,7 +40,7 @@ namespace Packages.PSOC.Workflows
                 classGroups[0].BaseClassScript.GetClass()
             };
             _detailedGraph = ReferenceGraphBuilder.BuildGraphFromTypesWithRoot(ReferenceGraphBuilder.GetTypesFromClassGroups(classGroups),rootType);
-            
+            _detailedGraph.UpdateRootNodes();
             return _detailedGraph;
         }
         [ContextMenu("Test Reference Graph")]
@@ -68,7 +72,7 @@ namespace Packages.PSOC.Workflows
             var detailedGraph = GetDetailedReferenceGraph();
             Debug.Log($"Detailed Graph: {detailedGraph}");
             Debug.Log($"Total edges in detailed graph: {detailedGraph.Edges.Count}");
-            
+
             // Log edges grouped by source class
             foreach (var node in detailedGraph.Nodes)
             {
@@ -82,6 +86,14 @@ namespace Packages.PSOC.Workflows
                     }
                 }
             }
+        }
+        
+        [ContextMenu("TestDetailledGraphJson")]
+        private void TestDetailledGraphJson()
+        {
+            var graph = GetDetailedReferenceGraph();
+            var json = graph.ToJson();
+            Debug.Log(json);
         }
 
         public List<string> GetPossibleNodes()
@@ -112,16 +124,16 @@ namespace Packages.PSOC.Workflows
         {
             var detailedGraph = GetDetailedReferenceGraph();
             return detailedGraph.DeriveSimplifiedGraph();
-        } 
+        }
 
-        public Dictionary<string,string> GetNodeDescriptions()
+        public Dictionary<string, string> GetNodeDescriptions()
         {
             var dict = new Dictionary<string, string>();
 
             // go through each class group or class group child
             foreach (var group in classGroups)
             {
-                
+
                 if (group.Implementations.Count == 0)
                 {
                     // get connectable classes                    
@@ -130,15 +142,41 @@ namespace Packages.PSOC.Workflows
                 else
                 {
                     foreach (var classEntry in group.Implementations)
-                    {                                                
+                    {
                         // get connectable classes                        
-                        dict[classEntry.TargetScript.GetClass().Name ] = string.IsNullOrEmpty(classEntry.DescriptionOverride) ? ClassFieldDescriptor.Describe(classEntry.TargetScript) : classEntry.DescriptionOverride;
+                        dict[classEntry.TargetScript.GetClass().Name] = string.IsNullOrEmpty(classEntry.DescriptionOverride) ? ClassFieldDescriptor.Describe(classEntry.TargetScript) : classEntry.DescriptionOverride;
                     }
                 }
             }
 
             return dict;
-        } 
+        }
+
+
+        /// <summary>
+        /// Exports each class description as an individual json file. The class descriptions contain detailed comments and information about the fields and how settings behave
+        /// </summary>
+        [ContextMenu("ExportClassDescriptions")]
+        private void ExportClassDescriptions()
+        {
+            // create a default folder if it does not exist yet (should be next to the asset of this workflow for easy access)
+            var assetPath = AssetDatabase.GetAssetPath(this);
+            var folderPath = Path.Combine(Path.GetDirectoryName(assetPath), "ClassDescriptions");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+                Debug.Log($"Created folder for class descriptions at {folderPath}");
+            }
+            // use GetNodeDescriptions and export each dict entry as file, use key as name
+            var descriptions = GetNodeDescriptions();
+            foreach (var kvp in descriptions)
+            {
+                var filePath = Path.Combine(folderPath, kvp.Key + ".json");
+                File.WriteAllText(filePath, kvp.Value);
+                Debug.Log($"Exported description for {kvp.Key} to {filePath}");
+            }
+
+        }
 
         [ContextMenu("Create Agents")]
         private void CreateAgents()

@@ -258,27 +258,29 @@ private async void SyncAllWorkflows()
                     selector_agent_indices = blackboardWorkflow.GetSelectorAgentIndices()
                 });
             case GraphDesignerWorkflow graphDesignerWorkflow:
-
-                // create a jsonobject to store possible nodetypes and possible edges 
                 var possibleNodes = graphDesignerWorkflow.GetPossibleNodes();
-                var possibleEdges = graphDesignerWorkflow.GetPossibleEdgesForNodes();                                
-                var node_descriptions = graphDesignerWorkflow.GetNodeDescriptions();
-                Dictionary<string, object> nodesDict = new Dictionary<string, object>();
-                nodesDict["possible_nodes"] = possibleNodes;
-                nodesDict["possible_edges"] = possibleEdges;   
-                nodesDict["node_descriptions"] = node_descriptions;             
+                var possibleEdges = graphDesignerWorkflow.GetPossibleEdgesForNodes();
+                var nodeDescriptions = graphDesignerWorkflow.GetNodeDescriptions();
 
-                var json = Newtonsoft.Json.JsonConvert.SerializeObject(new
+                var detailedGraph = graphDesignerWorkflow.GetDetailedReferenceGraph();
+                var detailedGraphObject = JsonConvert.DeserializeObject(detailedGraph.ToJson());
+
+                return JsonConvert.SerializeObject(new
                 {
                     name = workflow.name,
                     description = workflow.Description,
                     agents = agent_ids,
                     root_agent = workflow.RootAgent.agentId,
-                    is_graph_designer = true,       
-                    misc_data = nodesDict             
+                    is_graph_designer = true,                    
+                    misc_data = new
+                    {
+                        possible_nodes = possibleNodes,
+                        possible_edges = possibleEdges,
+                        node_descriptions = nodeDescriptions,
+                        detailed_graph = detailedGraphObject,
+                        semantic_class_query_engine_tool = graphDesignerWorkflow.SemanticClassQueryEngineID ?? "",
+                    }
                 });
-                return json;
-
             default:
                 return Newtonsoft.Json.JsonConvert.SerializeObject(new
                 {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace Packages.PSOC.Workflows.Graph
 {
@@ -223,7 +224,81 @@ namespace Packages.PSOC.Workflows.Graph
 
             return output.ToString();
         }
-        
+
+        /// <summary>
+        /// Serializes the graph into JSON including all nodes, edges, and root node names.
+        /// The resulting JSON is suitable for recreating the graph in another process or language.
+        /// </summary>
+        /// <remarks>
+        /// The serialized structure contains:
+        /// - nodes: all class names that exist in the graph.
+        /// - rootNodes: the nodes that have no incoming edges and should be treated as graph roots.
+        /// - edges: each edge includes sourceNode, targetNode, fieldName, and referencedTypeName.
+        ///
+        /// To recreate the graph in another language:
+        /// 1. Parse the JSON into a generic object or struct.
+        /// 2. Create a new graph instance.
+        /// 3. Add or resolve each node by its class name.
+        /// 4. Add each edge using the source and target class names with the field and referenced type values.
+        /// 5. Mark each root node explicitly so root node ordering is preserved.
+        ///
+        /// Example JSON:
+        /// {
+        ///   "nodes": ["A","B","C"],
+        ///   "rootNodes": ["A"],
+        ///   "edges": [
+        ///     { "sourceNode": "A", "targetNode": "B", "fieldName": "child", "referencedTypeName": "Namespace.B" }
+        ///   ]
+        /// }
+        ///
+        /// In JavaScript/TypeScript, recreate with:
+        /// const data = JSON.parse(jsonText);
+        /// const graph = new ReferenceGraph();
+        /// data.nodes.forEach(name => graph.getOrAddNode(name));
+        /// data.edges.forEach(edge => graph.addEdge(graph.getOrAddNode(edge.sourceNode), graph.getOrAddNode(edge.targetNode), edge.fieldName, edge.referencedTypeName));
+        /// data.rootNodes.forEach(name => graph.setNodeAsRoot(graph.getOrAddNode(name)));
+        ///
+        /// In C#, use JsonSerializer.Deserialize<SerializedReferenceGraph>(jsonText) and then recreate nodes/edges/root nodes.
+        public string ToJson()
+        {
+            UpdateRootNodes();
+
+            var payload = new SerializedReferenceGraph
+            {
+                nodes = _nodes.Select(n => n.ClassName).OrderBy(name => name).ToList(),
+                rootNodes = RootNodes.Select(n => n.ClassName).OrderBy(name => name).ToList(),
+                edges = _edges.Select(e => new SerializedReferenceGraphEdge
+                {
+                    sourceNode = e.SourceNode.ClassName,
+                    targetNode = e.TargetNode.ClassName,
+                    fieldName = e.FieldName,
+                    referencedTypeName = e.ReferencedTypeName,
+                }).ToList()
+            };
+
+            var settings = new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented
+            };
+
+            return JsonConvert.SerializeObject(payload, settings);
+        }
+
+        private class SerializedReferenceGraph
+        {
+            public List<string> nodes { get; set; }
+            public List<string> rootNodes { get; set; }
+            public List<SerializedReferenceGraphEdge> edges { get; set; }
+        }
+
+        private class SerializedReferenceGraphEdge
+        {
+            public string sourceNode { get; set; }
+            public string targetNode { get; set; }
+            public string fieldName { get; set; }
+            public string referencedTypeName { get; set; }
+        }
+
         public void UpdateRootNodes()
         {
             _rootNodes.Clear();
