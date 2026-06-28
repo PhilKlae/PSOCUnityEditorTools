@@ -3,6 +3,7 @@
 using UnityEditor;
 using UnityEngine;
 using System.Linq;
+using System;
 
 public class SyncManagerWindow : EditorWindow
 {
@@ -17,7 +18,7 @@ public class SyncManagerWindow : EditorWindow
 
         GUILayout.Space(8);
 
-        if (GUILayout.Button("Sync All (Agents, Buckets, Tools)", GUILayout.Height(32)))
+        if (GUILayout.Button("Sync All (Agents, Buckets, Tools, Glossaries)", GUILayout.Height(32)))
         {
             RunSyncAll();
         }
@@ -28,7 +29,7 @@ public class SyncManagerWindow : EditorWindow
         }
     }
 
-    private void RunSyncAll(bool redrawBulkExporters = false)
+    private async void RunSyncAll(bool redrawBulkExporters = false)
     {
         // Trigger agents
         var agentWindow = GetWindow<AgentManagerWindow>();
@@ -55,6 +56,15 @@ public class SyncManagerWindow : EditorWindow
         if (redrawBulkExporters)
         {
             RedoBulkExporters();
+        }
+
+        try
+        {
+            await GlossarySyncUtility.SyncAllGlossariesAsync();
+        }
+        catch (Exception exception)
+        {
+            Debug.LogError($"Glossary sync failed: {exception}");
         }
     }
 
